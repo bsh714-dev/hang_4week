@@ -37,12 +37,12 @@ router.get("/", async (req, res) => {
 router.get('/:postId', async (req, res) => {
   try {
     const { postId } = req.params;
-    const existPosts = await posts.findOne({ where: postId });
+    const existPosts = await posts.findOne({ where: { postId } })
     if (!existPosts) {
       return res.status(400).json({ success: false, errorMessage: "게시글이 존재하지 않습니다." });
     }
-    res.json({ existPosts });
-    res.json({ data: result });
+
+    res.json({ "data": existPosts });
   } catch (error) {
     console.log(error)
     res.status(400).send({ errorMessage: "게시글 조회에 실패하였습니다." });
@@ -73,7 +73,7 @@ router.delete("/:postId", authMiddleware, async (req, res) => {
   try {
     const { postId } = req.params;
 
-    const existPosts = await posts.findId(postId);
+    const existPosts = await posts.findByPk(postId);
     if (existPosts) {
       await posts.destroy({ where: { postId } })
       res.status(200).json({ "message": "게시글을 삭제하였습니다." })
