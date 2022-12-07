@@ -5,7 +5,7 @@ const { comments } = require('../models');
 
 
 //댓글 생성
-router.post('/:postId', async (req, res) => {
+router.post('/:postId', authMiddleware, async (req, res) => {
     try {
         const { postId } = req.params;
         const { userId, nickname } = res.locals.user;
@@ -17,7 +17,7 @@ router.post('/:postId', async (req, res) => {
         res.status(200).json({ "message": "댓글을 작성하였습니다." })
     } catch (error) {
         console.log(error)
-        res.status(400).send({ errorMessage: "댓글 조회에 실패하였습니다." });
+        res.status(400).send({ errorMessage: "댓글 작성에 실패하였습니다." });
     }
 });
 
@@ -41,44 +41,36 @@ router.get('/:postId', async (req, res) => {
         res.status(400).send({ "message": "댓글 목록 조회에 실패하였습니다." });
     }
 });
-
+//댓글수정
 router.put("/:commentId", authMiddleware, async (req, res) => {
-    try {
-        const { commentId } = req.params;
-        const { comment } = req.body;
-
-        const existPosts = await comments.findId(commentId);
-        if (existPosts) {
-            await comments.update(
-                { comment: comment },
-                { where: { content } }
-            );
-            res.status(200).json({ "message": "게시글을 수정하였습니다." });
-        } else {
-            res.status(400).json({ errorMessage: "댓글이 존재하지 않습니다." })
-        };
-    } catch (error) {
-        console.log(error)
-        res.status(400).send({ "message": "댓글 수정에 실패하였습니다." });
-    }
-});
-
-//댓글 삭제
-router.delete("/:commentId", async (req, res) => {
     const { commentId } = req.params;
-    //코멘트 아이디
-    const comment = await comments.findByPk(commentId);
-    try {
-        if (comment) {
-            await comment.destroy({ where: { commentId } })
-            res.status(200).json({ "message": "댓글을 삭제하였습니다." })
-        } else {
-            res.status(400).json({ errorMessage: "댓글이 존재하지 않습니다." })
+    const { comment } = req.body;
+    const { userId } = res.locals.users;
+
+    await comments.update({ comment }, {
+        where: {
+            commentId,
+            userId,
         }
-    } catch (error) {
-        res.status(400).json({ errorMessage: "댓글 삭제에 실패했습니다." });
-    }
-});
+    })
+
+    res.status(201).json({ "message": "댓글을 수정하였습니다." })
+})
+
+//5. 댓글 삭제하기
+router.delete("/:commentId", authMiddleware, async (req, res) => {
+    const { commentId } = req.params;
+    const { userId } = res.locals.users;
+
+    await comments.destroy({
+        where: {
+            commentId,
+            userId,
+        }
+    });
+
+    res.json({ "message": "댓글을 삭제하였습니다." })
+})
 
 
 
