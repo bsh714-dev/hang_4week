@@ -1,8 +1,9 @@
 const jwt = require('jsonwebtoken'); //jwt 사용
 const { users } = require("../models");//데이터 베이스 유저 사용
-const cookieParser = require("cookie-parser");
+
 //헤더에 전달된 토큰을 검증
 module.exports = (req, res, next) => {//모듈로 바로 내보내는 미들웨어
+    console.log(req.cookies)
     const { accessToken } = req.cookies
 
     if (!accessToken) {

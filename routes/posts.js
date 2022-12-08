@@ -3,7 +3,7 @@ const router = express.Router();
 const jwt = require("jsonwebtoken");
 const authMiddleware = require('../middlewares/auth-middleware');
 
-const { posts, Likes, sequelize } = require('../models');
+const { posts, likes, sequelize } = require('../models');
 //게시글 작성
 router.post("/", authMiddleware, async (req, res) => {
   const { userId, nickname } = res.locals.user;
@@ -110,14 +110,15 @@ router.put('/:postId/like', authMiddleware, async (req, res) => {
 
     if (!currentLike) {
       await likes.create({ postId, userId });
-      await posts.increment({ likes: 1 }, { where: { postId } })
+      await posts.increment({ likesCount: 1 }, { where: { postId } })
       res.status(200).json({ "message": "게시글의 좋아요를 등록하였습니다." });
     } else {
       await likes.destroy({ where: [{ postId }, { userId }] });
-      await posts.decrement({ likes: 1 }, { where: { postId } })
+      await posts.decrement({ likesCount: 1 }, { where: { postId } })
       res.status(200).json({ "message": "게시글의 좋아요를 취소하였습니다." });
     }
   } catch (err) {
+    console.log(err)
     res.status(400).json({ errorMessage: "좋아요 실패!" });
   }
 });
